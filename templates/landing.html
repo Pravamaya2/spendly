@@ -138,6 +138,7 @@
     const closeBtn = document.getElementById('close-demo-modal');
 
     function openModal() {
+        // Set the src from data-src to start the video
         iframe.src = iframe.dataset.src;
         modal.setAttribute('aria-hidden', 'false');
         modal.classList.add('is-open');
@@ -145,6 +146,7 @@
     }
 
     function closeModal() {
+        // Reset src to empty string to stop the video playing in the background
         iframe.src = '';
         modal.setAttribute('aria-hidden', 'true');
         modal.classList.remove('is-open');
