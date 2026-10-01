@@ -172,9 +172,9 @@ def profile():
     return render_template(
         "profile.html",
         user=get_user_by_id(uid),
-        stats=get_summary_stats(uid, date_from, date_to),
+        stats=get_summary_stats(uid, date_from=date_from, date_to=date_to),
         expenses=get_recent_transactions(uid, date_from=date_from, date_to=date_to),
-        categories=get_category_breakdown(uid, date_from, date_to),
+        categories=get_category_breakdown(uid, date_from=date_from, date_to=date_to),
         date_from=date_from,
         date_to=date_to,
         presets=presets,

@@ -107,7 +107,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
             "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%d %b %Y"),
             "description": row["description"],
             "category": row["category"],
-            "amount": "{:,.2f}".format(row["amount"]),
+            "amount": f"₹{row['amount']:,.2f}",
         }
         for row in rows
     ]
@@ -159,8 +159,13 @@ def get_category_breakdown(user_id, date_from=None, date_to=None):
     if grand_total == 0:
         return []
 
-    pcts = [int(r["total"] / grand_total * 100) for r in rows]
-    pcts[0] += 100 - sum(pcts)
+    # Calculate percentages and handle rounding to ensure sum is exactly 100%
+    pcts = [round(r["total"] / grand_total * 100) for r in rows]
+    diff = 100 - sum(pcts)
+
+    # Adjust the largest category to absorb the rounding difference
+    if diff != 0:
+        pcts[0] += diff
 
     return [
         {
