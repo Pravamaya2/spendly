@@ -80,10 +80,12 @@ def get_user_by_id(user_id):
     )
 
     return {
+        "id": row["id"],
         "name": name,
         "email": row["email"],
         "initials": initials,
         "member_since": member_since,
+        "created_at": row["created_at"],
     }
 
 
@@ -136,6 +138,7 @@ def get_summary_stats(user_id, date_from=None, date_to=None):
 
     return {
         "total": "{:,.2f}".format(total_value),
+        "total_raw": total_value,
         "count": count,
         "top_category": cat_row["category"] if cat_row else "—",
     }
@@ -175,3 +178,20 @@ def get_category_breakdown(user_id, date_from=None, date_to=None):
         }
         for r, pct in zip(rows, pcts)
     ]
+
+
+def get_growth_data(user_id, interval="month"):
+    """
+    Fetch aggregated spending totals for a specific interval.
+    interval: 'month' (%Y-%m) or 'year' (%Y)
+    """
+    fmt = "%Y-%m" if interval == "month" else "%Y"
+    conn = get_db()
+    rows = conn.execute(
+        f"SELECT strftime('{fmt}', date) as period, SUM(amount) as total "
+        "FROM expenses WHERE user_id = ? GROUP BY period ORDER BY period ASC",
+        (user_id,),
+    ).fetchall()
+    conn.close()
+
+    return {row["period"]: row["total"] for row in rows}

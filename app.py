@@ -1,6 +1,7 @@
 import calendar
 import sqlite3
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+
 
 from flask import (
     Flask,
@@ -19,6 +20,7 @@ from database.queries import (
     delete_expense_by_id,
     get_category_breakdown,
     get_expense_by_id,
+    get_growth_data,
     get_recent_transactions,
     get_summary_stats,
     get_user_by_id,
@@ -58,6 +60,11 @@ def _months_ago(today, n):
         m += 12
         y -= 1
     return date(y, m, 1).isoformat()
+
+
+def _years_ago(today, n):
+    y = today.year - n
+    return date(y, 1, 1).isoformat()
 
 
 # ------------------------------------------------------------------ #
@@ -169,15 +176,45 @@ def profile():
         "last_6": {"date_from": _months_ago(today, 6), "date_to": today_str},
     }
 
+    # Growth Analytics
+    user_data = get_user_by_id(uid)
+    reg_date = datetime.strptime(user_data["created_at"], "%Y-%m-%d %H:%M:%S").date()
+    days_since_reg = (today - reg_date).days
+
+    lifetime_stats = get_summary_stats(uid)
+    avg_daily_spend = lifetime_stats["total_raw"] / max(1, days_since_reg)
+
+    # Monthly Growth (last 6 months)
+    monthly_raw = get_growth_data(uid, "month")
+    monthly_growth = []
+    for i in range(5, -1, -1):
+        d = _months_ago(today, i)
+        period = d[:7] # YYYY-MM
+        val = monthly_raw.get(period, 0.0)
+        label = datetime.strptime(period, "%Y-%m").strftime("%b %y")
+        monthly_growth.append({"label": label, "amount": val})
+
+    # Yearly Growth (last 3 years)
+    yearly_raw = get_growth_data(uid, "year")
+    yearly_growth = []
+    for i in range(2, -1, -1):
+        y = today.year - i
+        period = str(y)
+        val = yearly_raw.get(period, 0.0)
+        yearly_growth.append({"label": period, "amount": val})
+
     return render_template(
         "profile.html",
-        user=get_user_by_id(uid),
+        user=user_data,
         stats=get_summary_stats(uid, date_from=date_from, date_to=date_to),
         expenses=get_recent_transactions(uid, date_from=date_from, date_to=date_to),
         categories=get_category_breakdown(uid, date_from=date_from, date_to=date_to),
         date_from=date_from,
         date_to=date_to,
         presets=presets,
+        avg_daily_spend=avg_daily_spend,
+        monthly_growth=monthly_growth,
+        yearly_growth=yearly_growth,
     )
 
 

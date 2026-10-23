@@ -67,6 +67,53 @@
                 <span class="stat-label">Top Category</span>
                 <span class="stat-value">{{ stats.top_category }}</span>
             </div>
+            <div class="stat-card">
+                <span class="stat-label">Daily Avg</span>
+                <span class="stat-value">₹{{ "%.2f"|format(avg_daily_spend) }}</span>
+            </div>
+        </div>
+
+        <!-- Growth Analytics Section -->
+        <div class="growth-analytics">
+            <div class="growth-grid">
+                <!-- Monthly Growth -->
+                <div class="growth-card">
+                    <h3 class="growth-chart-title">Monthly Spending (Last 6mo)</h3>
+                    <div class="growth-chart">
+                        {% set max_monthly = monthly_growth | map(attribute='amount') | max if monthly_growth else 1 %}
+                        {% for item in monthly_growth %}
+                        <div class="growth-bar-container">
+                            <span class="growth-bar-label">{{ item.label }}</span>
+                            <div class="growth-bar-track">
+                                <div class="growth-bar-fill"
+                                     style="width: {{ (item.amount / max_monthly * 100) if max_monthly > 0 else 0 }}%">
+                                    <span class="growth-bar-value">₹{{ "%.0f"|format(item.amount) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Yearly Growth -->
+                <div class="growth-card">
+                    <h3 class="growth-chart-title">Yearly Spending (Last 3yrs)</h3>
+                    <div class="growth-chart">
+                        {% set max_yearly = yearly_growth | map(attribute='amount') | max if yearly_growth else 1 %}
+                        {% for item in yearly_growth %}
+                        <div class="growth-bar-container">
+                            <span class="growth-bar-label">{{ item.label }}</span>
+                            <div class="growth-bar-track">
+                                <div class="growth-bar-fill"
+                                     style="width: {{ (item.amount / max_yearly * 100) if max_yearly > 0 else 0 }}%">
+                                    <span class="growth-bar-value">₹{{ "%.0f"|format(item.amount) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Transaction history + category breakdown -->
